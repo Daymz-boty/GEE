@@ -25,11 +25,6 @@ var minAmp      = 0.10;   // rain-fed phenological signal
 
 var maskingStrategy = 'MODERATE';  // STRICT_AND | MODERATE | PERMISSIVE
 
-
-// ==========================
-// 2. STUDY AREA
-// ==========================
-
 // ==========================
 // 2. STUDY AREA (SOUTHWEST NIGERIA)
 // ==========================
@@ -138,21 +133,13 @@ var ndviAmp = ndviBiMonthly
   .max()
   .subtract(ndviBiMonthly.min())
   .rename('NDVI_amp');
-
-
-// ==========================
 // 8. BASE VEGETATION MASK
-// ==========================
-
 var vegMask = growingNDVI
   .gt(minNDVI)
   .and(growingNDVI.lt(maxNDVIcap))
   .and(ndviAmp.gt(minAmp));
 
-
-// ==========================
 // 9. CROPLAND REFERENCE DATA
-// ==========================
 
 // NABIL Africa cropland
 var nabil = ee.Image(
@@ -166,9 +153,9 @@ var dea = ee.ImageCollection(
 ).mosaic().select('b1').eq(1).clip(geom);
 
 
-// ==========================
+
 // 10. ENSEMBLE CROPLAND MASK
-// ==========================
+
 
 var bothAgree   = nabil.and(dea);
 var nabilHigh   = nabil.and(growingNDVI.gt(highNDVI));
@@ -193,18 +180,9 @@ croplandMask = croplandMask
   .and(vegMask)
   .rename('cropland')
   .toByte();
-
-
-// ==========================
 // 11. APPLY MASK TO NDVI STACK
-// ==========================
-
 var ndviMasked = ndviStack.updateMask(croplandMask);
-
-
-// ==========================
 // 12. UNSUPERVISED CLUSTERING
-// ==========================
 
 var training = ndviMasked.sample({
   region: geom,
@@ -378,7 +356,3 @@ Export.table.toDrive({
   fileFormat: 'CSV'
 });
 
-
-// ============================================================================
-// END OF SCRIPT
-// ============================================================================
